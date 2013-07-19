@@ -10,7 +10,7 @@ apts = CodeGen::List.reverse.flat_map {|c| c.steps.map {|step| step.apt } }
 rows = [["language", "ubuntu package", "version"]]
 rows += (langs.zip(apts) + [["(extra)", "tcc"]]).map do |lang, apt|
     if apt
-      pkg = `dpkg -p #{ apt }`
+      pkg = `dpkg -p #{ apt } 2>/dev/null`
       version = $?.success? && pkg.b[/^Version: (.*)/, 1]
     end
     [lang, apt || "(none)", version || '-']
