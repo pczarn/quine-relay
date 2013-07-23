@@ -35,12 +35,12 @@ class CodeGen
   # Common part
   PROLOGUE = <<-END.split.join
   B=92.chr;
-  N=10.chr;
+  N=?\\n;
   n=0;
   e=->(s){s.gsub(/[\#{B+B+N}"]/){B+(N==$&??n:$&)}};
   E=->(s){'("'+e[s]+'")'};
   d=->(s,t=?"){s.gsub(t){t+t}};
-  D=->(s,t=?@){s.gsub(B){t}};
+  D=->(s,t=?@){s.tr(B,t)};
   Q=->(s,t=?$){s.gsub(t){B+$&}};
   END
 
@@ -451,17 +451,22 @@ class Cplusplus < CodeGen
 end
 
 class C < CodeGen
+  Name = "C, Ruby"
   File = "QR.c"
   Cmd = "gcc -o QR QR.c && ./QR > OUTFILE"
   Apt = "gcc"
   def code
     <<-'END'.lines.map {|l| l.strip }.join
       "
+        #/*\n
+        t=<<'//t'\n
+        */define eval(...) int main(){
+            puts#{E[PREV]};
+            return 0;
+          }\n
         #include<stdio.h>\n
-        int main(){
-          puts#{E[PREV]};
-          return 0;
-        }
+        //t\n
+        eval(s=%q(puts %Q(#/\*\nt=<<'//t'\n#{t}//t\neval(s=%q(#{s}))\n).bytes.map{|b|?+*b+'.>'}))
       "
     END
   end
